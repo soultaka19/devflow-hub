@@ -1,0 +1,122 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum ResourceType {
+  template
+  prompt
+  guide
+  checklist
+}
+
+enum Level {
+  debutant
+  intermediaire
+  avance
+}
+
+enum ProjectStatus {
+  idea
+  in_progress
+  launched
+  paused
+  archived
+}
+
+enum DocSection {
+  architecture
+  decisions
+  todo
+  retro
+  notes
+}
+
+enum TodoStatus {
+  backlog
+  in_progress
+  done
+}
+
+enum Priority {
+  low
+  medium
+  high
+}
+
+// ─── Resources (bibliothèque publique) ────────────────────────────────────────
+
+model Resource {
+  id            String       @id @default(cuid())
+  slug          String       @unique
+  title         String
+  description   String
+  type          ResourceType
+  stack         String[]
+  level         Level
+  isPremium     Boolean      @default(false)
+  isPublished   Boolean      @default(false)
+  storagePath   String
+  downloadCount Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  downloads     Download[]
+}
+
+model Download {
+  id           String   @id @default(cuid())
+  resourceId   String
+  resource     Resource @relation(fields: [resourceId], references: [id])
+  userId       String?
+  downloadedAt DateTime @default(now())
+}
+
+// ─── Dashboard / Organisation ─────────────────────────────────────────────────
+
+model Project {
+  id          String        @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  stack       String[]
+  status      ProjectStatus
+  repoUrl     String?
+  liveUrl     String?
+  revenue     Float         @default(0)
+  hoursSpent  Int           @default(0)
+  isPublic    Boolean       @default(false)
+  docs        ProjectDoc[]
+  todos       Todo[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ProjectDoc {
+  id        String     @id @default(cuid())
+  projectId String
+  project   Project    @relation(fields: [projectId], references: [id])
+  title     String
+  content   String
+  section   DocSection
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Todo {
+  id          String     @id @default(cuid())
+  projectId   String?
+  project     Project?   @relation(fields: [projectId], references: [id])
+  userId      String
+  title       String
+  description String?
+  status      TodoStatus
+  priority    Priority
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+}
