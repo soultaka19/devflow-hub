@@ -71,3 +71,4 @@ devflow-hub/
 ├── infra/         # Docker Compose
 └── CLAUDE.md
 ```
+"test claude integration" 
